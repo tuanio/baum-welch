@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from algorithms import baum_welch, hmmlearn_model
+import pickle
 
 
 class BKT:
@@ -17,11 +18,16 @@ class BKT:
         return self
 
     def partial_fit(self, obs_matrix):
-        for obs in obs_matrix:
-            PI, A, B, prob_obs = baum_welch(obs, n_iter=self.n_iter, verbose=self.verbose)
+        for idx, obs in enumerate(obs_matrix):
+            print(f'Idx: {idx}', end=': ')
+            PI, A, B, prob_obs, init_params = baum_welch(
+                obs, n_iter=self.n_iter, verbose=self.verbose)
             L, p_c = self.cal_L(PI, A, B, obs)
-            data = dict(prob_obs=prob_obs, PI=PI, A=A, B=B, L=L, p_c=p_c)
+            data = dict(prob_obs=prob_obs, PI=PI, A=A, B=B,
+                        L=L, p_c=p_c, init_params=init_params)
             self.data.append(data)
+        # save best model
+        pickle.dump(self.data, open('best_params.pkl', 'wb'))
         return self
 
     def cal_L(self, PI, A, B, obs):
